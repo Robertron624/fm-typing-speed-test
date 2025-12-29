@@ -1,6 +1,37 @@
 
+// Load fonts from assets
+
+// Sora regular
+@font-face {
+  font-family: 'Sora';
+  src: url('./assets/fonts/Sora/Sora-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+// Sora SemiBold
+@font-face {
+  font-family: 'Sora';
+  src: url('./assets/fonts/Sora/Sora-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+// Sora Bold
+@font-face {
+  font-family: 'Sora';
+  src: url('./assets/fonts/Sora/Sora-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
 :root {
 
+  font-family: 'Sora', sans-serif;
+  font-size: $default-text-size;
+  line-height: $default-line-height;
+  color: $neutral-0;
+  background-color: $neutral-900;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -17,8 +48,6 @@ a {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -42,4 +71,65 @@ button {
   cursor: pointer;
   font: inherit;
   transition: all 0.3s ease-in-out;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+input {
+  font: inherit;
+  border: none;
+  outline: none;
+}
+
+::-webkit-input-placeholder {
+  color: $neutral-400;
+}
+
+::-moz-placeholder {
+  color: $neutral-400;
+}
+
+:-ms-input-placeholder {
+  color: $neutral-400;
+}
+
+:-moz-placeholder {
+  color: $neutral-400;
+}
+
+textarea {
+  font: inherit;
+  border: none;
+  outline: none;
+  resize: none;
+}
+
+textarea::-webkit-input-placeholder {
+  color: $neutral-400;
+}
+
+textarea::-moz-placeholder {
+  color: $neutral-400;
+}
+
+textarea:-ms-input-placeholder {
+  color: $neutral-400;
+}
+
+textarea:-moz-placeholder {
+  color: $neutral-400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+// App
+
+#app {
+  width: 100%;
 }
