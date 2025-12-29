@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { bestWPM } from './store';
   console.log("Header loaded");
 </script>
 
@@ -19,7 +20,7 @@
                 Personal Best:
             </span>
         </p>
-        <p class="best-score-value">0 WPM</p>
+        <p class="best-score-value">{$bestWPM} WPM</p>
     </div>
   </div>
 </header>
