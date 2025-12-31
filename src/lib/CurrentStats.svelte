@@ -74,13 +74,23 @@
         </div>
         <div class="desktop">
             <div class="difficulty-options">
-                <button class:active={$testDifficulty === 'easy'} on:click={() => testDifficulty.set('easy')}>Easy</button>
-                <button class:active={$testDifficulty === 'medium'} on:click={() => testDifficulty.set('medium')}>Medium</button>
-                <button class:active={$testDifficulty === 'hard'} on:click={() => testDifficulty.set('hard')}>Hard</button>
+                <span class="label">
+                    Difficulty:
+                </span>
+                <div class="buttons">
+                    <button class:active={$testDifficulty === 'easy'} on:click={() => testDifficulty.set('easy')}>Easy</button>
+                    <button class:active={$testDifficulty === 'medium'} on:click={() => testDifficulty.set('medium')}>Medium</button>
+                    <button class:active={$testDifficulty === 'hard'} on:click={() => testDifficulty.set('hard')}>Hard</button>
+                </div>
             </div>
             <div class="mode-options">
-                <button class:active={$testMode === 'timed'} on:click={() => testMode.set('timed')}>Timed</button>
-                <button class:active={$testMode === 'passage'} on:click={() => testMode.set('passage')}>Passage</button>
+                <span class="label">
+                    Mode:
+                </span>
+                <div class="buttons">
+                    <button class:active={$testMode === 'timed'} on:click={() => testMode.set('timed')}>Timed</button>
+                    <button class:active={$testMode === 'passage'} on:click={() => testMode.set('passage')}>Passage</button>
+                </div>
             </div>
         </div>
     </div>
@@ -89,14 +99,27 @@
 <style lang="scss">
     .stats-and-options {
         width: 100%;
+
+        @include desktop {
+            display: flex;
+            justify-content: space-between;
+        }
         .current-stats {
             display: flex;
             justify-content: space-around;
             padding: 1rem 0;
             border-radius: 8px;
+
+            @include desktop {
+                padding: 0;
+            }
     
             .stat {
                 text-align: center;
+                
+                @include desktop {
+                    display: flex;
+                }
 
                 &:nth-child(2) {
                     border-left: 1px solid $neutral-400;
@@ -120,6 +143,8 @@
         }
 
         .options {
+            display: flex;
+            align-items: center;
             .mobile {
                 display: flex;
                 justify-content: space-between;
@@ -180,30 +205,51 @@
             }
             .desktop {
                 display: none;
-                margin-top: 1rem;
 
                 @include desktop {
-                    display: block;
+                    display: flex;
+                    align-items: center;
                 }
+
                 .difficulty-options, .mode-options {
                     display: flex;
                     justify-content: center;
+                    align-items: center;
                     gap: 0.5rem;
-                    margin-bottom: 0.5rem;
 
-                    button {
-                        padding: 0.5rem 1rem;
-                        border: none;
-                        border-radius: 4px;
-                        background-color: $neutral-500;
-                        color: $neutral-0;
-                        font-weight: 600;
-                        cursor: pointer;
-
-                        &.active {
-                            background-color: $neutral-400;
-                        }
+                    &:first-of-type {
+                        padding-right: 1rem;
+                        border-right: 1px solid $neutral-800;
                     }
+                    &:last-of-type {
+                        padding-left: 1rem;
+                    }
+
+                    .label {
+                        font-weight: 500;
+                        color: $neutral-500;
+                    }
+
+                    .buttons {
+                        display: flex;
+                        gap: 0.35rem;
+                        button {
+                            padding: 0.25rem 0.5rem;
+                            border: 1px solid $neutral-400;
+                            border-radius: 6px;
+                            background-color: transparent;
+                            color: $neutral-0;
+                            font-weight: 500;
+                            font-size: .9rem;
+    
+                            &.active {
+                                border-color: $blue-400;
+                                color: $blue-400;
+                            }
+                        }
+
+                    }
+
                 }
             }
         }
