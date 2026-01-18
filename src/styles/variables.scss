@@ -33,6 +33,11 @@ $green-500: hsl(140, 63%, 57%);
 
 $yellow-400: hsl(49, 85%, 70%);
 
+// Test related Text Colors
+$correct-text-color: $green-500;
+$incorrect-text-color: $red-500;
+$default-text-color: $neutral-400;
+
 //Typography
 
 // Body Copy

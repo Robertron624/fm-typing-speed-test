@@ -99,6 +99,8 @@
 <style lang="scss">
     .stats-and-options {
         width: 100%;
+        padding-block-end: 1rem;
+        border-bottom: 1px solid $neutral-500;
 
         @include desktop {
             display: flex;
