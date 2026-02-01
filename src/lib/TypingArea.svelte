@@ -1,29 +1,91 @@
 <script lang="ts">
-  import { testText, isTestRunning, userInput, timeLeft } from './store';
+  import { testText, isTestRunning, userInput, timeLeft, wpm, accuracy, correctCharacters, totalCharacters, showResults, selectedTimeLimit } from './store';
   
   let inputElement: HTMLTextAreaElement;
 
   function startTest() {
     if (!$isTestRunning) {
         $isTestRunning = true;
-        // Reset or prepare logic could go here
     }
     inputElement.focus();
   }
 
-  // Timer logic - simplest implementation for now to satisfy "start typing"
+  function getCharClass(char: string, index: number, input: string) {
+    if (index >= input.length) {
+        return '';
+    }
+    return char === input[index] ? 'correct' : 'incorrect';
+  }
+
+  // Check for test completion
+  $: if ($isTestRunning && $userInput.length >= $testText.length) {
+      const rawElapsed = $selectedTimeLimit - $timeLeft;
+      // ensure at least 1s to avoid Infinity
+      const elapsed = Math.max(1, rawElapsed);
+      
+      let correct = 0;
+      const input = $userInput;
+      const text = $testText;
+
+      for (let i = 0; i < input.length; i++) {
+          if (input[i] === text[i]) {
+              correct++;
+          }
+      }
+      
+      correctCharacters.set(correct);
+      totalCharacters.set(input.length);
+      
+      const netWpm = Math.round((correct / 5) / (elapsed / 60));
+      wpm.set(Math.max(0, netWpm));
+      
+      const acc = input.length > 0 ? Math.round((correct / input.length) * 100) : 100;
+      accuracy.set(acc);
+
+      isTestRunning.set(false);
+      showResults.set(true);
+  }
+
+  // Timer logic - with stats update
   let interval: ReturnType<typeof setInterval>;
   
   $: if ($isTestRunning && $timeLeft > 0) {
       if (!interval) {
           interval = setInterval(() => {
               timeLeft.update(n => {
-                  if (n <= 1) {
+                  const now = n - 1;
+                  const elapsed = $selectedTimeLimit - now;
+                  
+                  // Stats calculation
+                  let correct = 0;
+                  // We access user input and text from store subscriptions
+                  const input = $userInput;
+                  const text = $testText;
+
+                  for (let i = 0; i < input.length; i++) {
+                      if (input[i] === text[i]) {
+                          correct++;
+                      }
+                  }
+                  
+                  correctCharacters.set(correct);
+                  totalCharacters.set(input.length);
+                  
+                  if (elapsed > 0) {
+                      const netWpm = Math.round((correct / 5) / (elapsed / 60));
+                      wpm.set(Math.max(0, netWpm));
+                      
+                      const acc = input.length > 0 ? Math.round((correct / input.length) * 100) : 100;
+                      accuracy.set(acc);
+                  }
+
+                  if (now <= 0) {
                       clearInterval(interval);
                       isTestRunning.set(false);
+                      showResults.set(true);
                       return 0;
                   }
-                  return n - 1;
+                  return now;
               });
           }, 1000);
       }
@@ -44,7 +106,9 @@
   {/if}
 
   <div class="text-display" class:blurred={!$isTestRunning} on:click={startTest} on:keydown={() => {}} role="button" tabindex="0">
-    {$testText}
+    {#each $testText.split('') as char, i}
+      <span class={getCharClass(char, i, $userInput)}>{char}</span>
+    {/each}
   </div>
 
   <!-- Hidden textarea to capture input -->
@@ -98,6 +162,18 @@
     &.blurred {
       filter: blur(6px);
       opacity: 0.5;
+    }
+
+    span {
+        &.correct {
+            color: $correct-text-color;
+        }
+        
+        &.incorrect {
+            color: $incorrect-text-color;
+            text-decoration: underline;
+            text-decoration-color: $incorrect-text-color;
+        }
     }
   }
 

@@ -2,12 +2,18 @@
   import Header from "./lib/Header.svelte";
   import CurrentStats from "./lib/CurrentStats.svelte";
   import TypingArea from "./lib/TypingArea.svelte";
+  import Results from "./lib/Results.svelte";
+  import { showResults } from "./lib/store";
 </script>
 
 <Header />
 <main>
-  <CurrentStats />
-  <TypingArea />
+  {#if $showResults}
+    <Results />
+  {:else}
+    <CurrentStats />
+    <TypingArea />
+  {/if}
 </main>
 
 <style>
