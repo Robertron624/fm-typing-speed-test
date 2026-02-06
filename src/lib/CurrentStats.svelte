@@ -47,7 +47,7 @@
                 <div class="dropdown-menu">
                 {#each difficultyOptions as option}
                     <label>
-                    <input type="radio" bind:group={$testDifficulty} value={option} on:change={() => isDifficultyOpen = false}>
+                    <input type="radio" bind:group={$testDifficulty} value={option}>
                     {option}
                     </label>
                 {/each}
@@ -64,7 +64,7 @@
                 <div class="dropdown-menu">
                 {#each modeOptions as option}
                     <label>
-                    <input type="radio" bind:group={$testMode} value={option} on:change={() => isModeOpen = false}>
+                    <input type="radio" bind:group={$testMode} value={option}>
                     {option === 'timed' ? 'timed (60s)' : option}
                     </label>
                 {/each}
@@ -183,7 +183,7 @@
                         border: 1px solid $neutral-400;
                         border-radius: 4px;
                         margin-top: 0.25rem;
-                        z-index: 10;
+                        z-index: 50;
                         display: flex;
                         flex-direction: column;
 

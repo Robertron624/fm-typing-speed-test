@@ -10,10 +10,12 @@
     userInput,
     timeLeft,
     selectedTimeLimit,
+    bestWPM,
   } from "./store";
 
   let incorrectCharacters = 0;
   let isNewBaseline = false;
+  let isNewPersonalBest = false;
 
   $: incorrectCharacters = $totalCharacters - $correctCharacters;
 
@@ -29,36 +31,74 @@
   }
 
   onMount(() => {
-    const savedBaseline = localStorage.getItem("typing-test-baseline");
-    if (!savedBaseline) {
+    let savedBestJSON = localStorage.getItem("personal-best");
+
+    // Check for legacy key and migrate if necessary
+    if (!savedBestJSON) {
+      const legacyBaseline = localStorage.getItem("typing-test-baseline");
+      if (legacyBaseline) {
+        savedBestJSON = legacyBaseline;
+        localStorage.setItem("personal-best", legacyBaseline);
+        localStorage.removeItem("typing-test-baseline");
+      }
+    }
+
+    const currentResult = {
+      wpm: $wpm,
+      accuracy: $accuracy,
+      date: new Date().toISOString(),
+    };
+
+    if (!savedBestJSON) {
       isNewBaseline = true;
-      localStorage.setItem(
-        "typing-test-baseline",
-        JSON.stringify({
-          wpm: $wpm,
-          accuracy: $accuracy,
-          date: new Date().toISOString(),
-        }),
-      );
+      localStorage.setItem("personal-best", JSON.stringify(currentResult));
+      $bestWPM = $wpm;
+    } else {
+      try {
+        const savedBest = JSON.parse(savedBestJSON);
+        if ($wpm > savedBest.wpm) {
+          isNewPersonalBest = true;
+          localStorage.setItem("personal-best", JSON.stringify(currentResult));
+          $bestWPM = $wpm;
+        }
+      } catch (e) {
+        console.error("Error parsing saved best score:", e);
+        // Fallback: treat as new baseline if corrupted
+        isNewBaseline = true;
+        localStorage.setItem("personal-best", JSON.stringify(currentResult));
+        $bestWPM = $wpm;
+      }
     }
   });
 </script>
 
 <div class="results-container">
   <div class="test-completed-icon">
-    <img src="/images/icon-completed.svg" alt="check" />
+    {#if isNewPersonalBest}
+      <img class="new-pb-icon" src="/images/icon-new-pb.svg" alt="fireworks" />
+    {:else}
+      <img src="/images/icon-completed.svg" alt="check" />
+    {/if}
   </div>
 
-    <h2>
-      {isNewBaseline
-        ? "Baseline Established!"
-        : "Test Complete!"}
-    </h2>
-    <p class="completed-msg">
-      {isNewBaseline
-        ? "You've set the bar. Now the real challenge begins--time to beat it."
-        : "Solid run. Keep pushing to beat your high score."}
-    </p>
+  <h2>
+    {#if isNewBaseline}
+      Baseline Established!
+    {:else if isNewPersonalBest}
+      High Score Smashed!
+    {:else}
+      Test Complete!
+    {/if}
+  </h2>
+  <p class="completed-msg">
+    {#if isNewBaseline}
+      You've set the bar. Now the real challenge begins--time to beat it.
+    {:else if isNewPersonalBest}
+      You're getting faster. That was incredible typing.
+    {:else}
+      Solid run. Keep pushing to beat your high score.
+    {/if}
+  </p>
 
   <div class="stats-grid">
     <div class="stat-card">
@@ -67,7 +107,13 @@
     </div>
     <div class="stat-card">
       <h3>Accuracy:</h3>
-      <p class="value">{$accuracy}%</p>
+      <p
+        class="value accuracy"
+        class:perfect={$accuracy === 100}
+        class:imperfect={$accuracy < 100}
+      >
+        {$accuracy}%
+      </p>
     </div>
     <div class="stat-card">
       <h3>Characters:</h3>
@@ -81,7 +127,7 @@
   </div>
 
   <button class="restart-btn" on:click={restartTest}>
-    {#if isNewBaseline}
+    {#if isNewBaseline || isNewPersonalBest}
       Beat This Score
     {:else}
       Go Again
@@ -117,13 +163,20 @@
       img {
         width: 40px;
         height: 40px;
+        border-radius: 50%;
+        box-shadow:
+          0 0 0 7.5px hsla(140, 63%, 57%, 0.2),
+          0 0 0 15px hsla(140, 63%, 57%, 0.1);
+        &.new-pb-icon {
+          box-shadow: none;
+        }
       }
     }
   }
 
   h2 {
     font-size: 1.5rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.25rem;
     color: $neutral-0;
     font-weight: 600;
   }
@@ -132,6 +185,8 @@
     color: $neutral-500;
     font-weight: 500;
     font-size: 0.85rem;
+    max-width: 90%;
+    margin-inline: auto;
   }
 
   .stats-grid {
@@ -165,6 +220,16 @@
       font-size: 1.25rem;
       font-weight: bold;
       color: $neutral-0;
+
+      &.accuracy {
+        &.perfect {
+          color: $correct-text-color;
+        }
+
+        &.imperfect {
+          color: $incorrect-text-color;
+        }
+      }
     }
   }
 
