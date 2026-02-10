@@ -11,6 +11,7 @@
     timeLeft,
     selectedTimeLimit,
     bestWPM,
+    totalErrors,
   } from "./store";
 
   let incorrectCharacters = 0;
@@ -28,6 +29,7 @@
     $accuracy = 100;
     $correctCharacters = 0;
     $totalCharacters = 0;
+    $totalErrors = 0;
   }
 
   onMount(() => {

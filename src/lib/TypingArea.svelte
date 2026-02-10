@@ -1,7 +1,28 @@
 <script lang="ts">
-  import { testText, isTestRunning, userInput, timeLeft, wpm, accuracy, correctCharacters, totalCharacters, showResults, selectedTimeLimit } from './store';
+  import { testText, isTestRunning, userInput, timeLeft, wpm, accuracy, correctCharacters, totalCharacters, showResults, selectedTimeLimit, totalErrors } from './store';
   
   let inputElement: HTMLTextAreaElement;
+
+  // Track errors
+  let previousInputLength = 0;
+  
+  $: {
+      if (!$isTestRunning && $userInput.length === 0) {
+          previousInputLength = 0;
+      }
+      
+      // If input grew
+      if ($isTestRunning && $userInput.length > previousInputLength) {
+          const newCharIndex = $userInput.length - 1;
+          const char = $userInput[newCharIndex];
+          const targetChar = $testText[newCharIndex];
+          
+          if (char !== targetChar) {
+              totalErrors.update(n => n + 1);
+          }
+      }
+      previousInputLength = $userInput.length;
+  }
 
   function startTest() {
     if (!$isTestRunning) {
@@ -39,7 +60,7 @@
       const netWpm = Math.round((correct / 5) / (elapsed / 60));
       wpm.set(Math.max(0, netWpm));
       
-      const acc = input.length > 0 ? Math.round((correct / input.length) * 100) : 100;
+      const acc = (correct + $totalErrors) > 0 ? Math.round((correct / (correct + $totalErrors)) * 100) : 100;
       accuracy.set(acc);
 
       isTestRunning.set(false);
@@ -75,7 +96,7 @@
                       const netWpm = Math.round((correct / 5) / (elapsed / 60));
                       wpm.set(Math.max(0, netWpm));
                       
-                      const acc = input.length > 0 ? Math.round((correct / input.length) * 100) : 100;
+                      const acc = (correct + $totalErrors) > 0 ? Math.round((correct / (correct + $totalErrors)) * 100) : 100;
                       accuracy.set(acc);
                   }
 

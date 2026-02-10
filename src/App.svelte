@@ -17,7 +17,8 @@
     accuracy,
     correctCharacters,
     totalCharacters,
-    selectedTimeLimit
+    selectedTimeLimit,
+    totalErrors
   } from "./lib/store";
   import data from './data.json';
   import type { TextData } from './types';
@@ -50,6 +51,7 @@
       $accuracy = 100;
       $correctCharacters = 0;
       $totalCharacters = 0;
+      $totalErrors = 0;
   }
 
   onMount(() => {
@@ -58,6 +60,7 @@
       try {
         const savedBest = JSON.parse(savedBestJSON);
         $bestWPM = savedBest.wpm || 0;
+        $totalErrors = savedBest.totalErrors || 0;
       } catch (e) {
         console.error("Error loading personal best:", e);
       }

@@ -19,3 +19,4 @@ export const showResults = writable(false);
 export const bestWPM = writable(0);
 export const bestAccuracy = writable(0);
 export const testMode = writable<TestMode>('timed');
+export const totalErrors = writable(0);
