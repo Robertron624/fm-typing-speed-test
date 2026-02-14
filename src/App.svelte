@@ -44,7 +44,11 @@
       $isTestRunning = false;
       $showResults = false;
       $userInput = "";
-      $timeLeft = $selectedTimeLimit;
+      if (mode === 'passage') {
+          $timeLeft = 0;
+      } else {
+          $timeLeft = $selectedTimeLimit;
+      }
       
       // Reset stats
       $wpm = 0;

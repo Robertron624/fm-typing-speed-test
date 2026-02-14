@@ -30,7 +30,7 @@
             <p class="value">{$accuracy}%</p>
         </div>
         <div class="stat">
-            <p class="label">Time Left:</p>
+            <p class="label">{$testMode === 'passage' ? 'Time Elapsed:' : 'Time Left:'}</p>
             <p class="value">{formatTime($timeLeft)}</p>
         </div>
     </div>

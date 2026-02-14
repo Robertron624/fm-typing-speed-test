@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { testText, isTestRunning, userInput, timeLeft, wpm, accuracy, correctCharacters, totalCharacters, showResults, selectedTimeLimit, totalErrors } from './store';
+  import { testText, isTestRunning, userInput, timeLeft, wpm, accuracy, correctCharacters, totalCharacters, showResults, selectedTimeLimit, totalErrors, testMode } from './store';
   
   let inputElement: HTMLTextAreaElement;
+
 
   // Track errors
   let previousInputLength = 0;
@@ -31,6 +32,25 @@
     inputElement.focus();
   }
 
+  function handleWindowKeydown(event: KeyboardEvent) {
+    if ($isTestRunning) return;
+    
+    // Ignore if user is interacting with UI controls
+    if (event.target instanceof HTMLElement && 
+       (event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT')) {
+        return;
+    }
+
+    // Ignore commands
+    if (event.ctrlKey || event.metaKey || event.altKey) return;
+    
+    // Only accept printable characters (length 1) to start the test
+    // This avoids starting on Tab, Escape, Shift etc.
+    if (event.key.length === 1) {
+        startTest();
+    }
+  }
+
   function getCharClass(char: string, index: number, input: string) {
     if (index >= input.length) {
         return '';
@@ -40,7 +60,7 @@
 
   // Check for test completion
   $: if ($isTestRunning && $userInput.length >= $testText.length) {
-      const rawElapsed = $selectedTimeLimit - $timeLeft;
+      const rawElapsed = $testMode === 'passage' ? $timeLeft : ($selectedTimeLimit - $timeLeft);
       // ensure at least 1s to avoid Infinity
       const elapsed = Math.max(1, rawElapsed);
       
@@ -70,12 +90,20 @@
   // Timer logic - with stats update
   let interval: ReturnType<typeof setInterval>;
   
-  $: if ($isTestRunning && $timeLeft > 0) {
+  $: if ($isTestRunning && ($timeLeft > 0 || $testMode === 'passage')) {
       if (!interval) {
           interval = setInterval(() => {
               timeLeft.update(n => {
-                  const now = n - 1;
-                  const elapsed = $selectedTimeLimit - now;
+                  let now: number;
+                  let elapsed: number;
+
+                  if ($testMode === 'passage') {
+                      now = n + 1;
+                      elapsed = now;
+                  } else {
+                      now = n - 1;
+                      elapsed = $selectedTimeLimit - now;
+                  }
                   
                   // Stats calculation
                   let correct = 0;
@@ -100,7 +128,7 @@
                       accuracy.set(acc);
                   }
 
-                  if (now <= 0) {
+                  if ($testMode === 'timed' && now <= 0) {
                       clearInterval(interval);
                       isTestRunning.set(false);
                       showResults.set(true);
@@ -117,6 +145,8 @@
   }
 
 </script>
+
+<svelte:window on:keydown={handleWindowKeydown} />
 
 <div class="typing-container">
   {#if !$isTestRunning}
