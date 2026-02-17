@@ -151,7 +151,6 @@
 <style lang="scss">
   .results-container {
     max-width: 600px;
-    padding-block: 2rem;
     border-radius: 12px;
     text-align: center;
     color: $neutral-0;

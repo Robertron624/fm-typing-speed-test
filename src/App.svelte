@@ -83,7 +83,7 @@
 </script>
 
 <Header />
-<main>
+<main class:success={$showResults}>
   {#if $showResults}
     <Results />
   {:else}
@@ -95,9 +95,23 @@
 <style>
   main {
     text-align: center;
-    padding: 0 1em 1em 1em;
-    /* max-width: 240px; */
+    padding: 0 1em 6em 1em;
     width: 100%;
     margin-top: 2rem;
+  }
+  main.success {
+    border: 2px solid red;
+    background-image: 
+      url('/images/pattern-star-2.svg'),
+      url('/images/pattern-star-1.svg');
+
+    background-repeat: no-repeat;
+    background-position: 
+      top 1.5rem left 1rem,
+      bottom 1.5rem right 1.5rem;
+
+    background-size: 
+      21px 21px,
+      39px 39px;
   }
 </style>
