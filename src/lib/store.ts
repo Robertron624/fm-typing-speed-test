@@ -16,6 +16,7 @@ export const userInput = writable('');
 export const testDifficulty = writable<TestDifficulty>('easy');
 export const selectedTimeLimit = writable(60);
 export const showResults = writable(false);
+export const isNewPersonalBest = writable(false);
 export const bestWPM = writable(0);
 export const bestAccuracy = writable(0);
 export const testMode = writable<TestMode>('timed');

@@ -6,6 +6,7 @@
   import Results from "./lib/Results.svelte";
   import { 
     showResults, 
+    isNewPersonalBest,
     bestWPM,
     testDifficulty,
     testMode,
@@ -83,7 +84,7 @@
 </script>
 
 <Header />
-<main class:success={$showResults}>
+<main class:success={$showResults} class:new-record={$isNewPersonalBest}>
   {#if $showResults}
     <Results />
   {:else}
@@ -98,9 +99,9 @@
     padding: 0 1em 6em 1em;
     width: 100%;
     margin-top: 2rem;
+    flex: 1;
   }
   main.success {
-    border: 2px solid red;
     background-image: 
       url('/images/pattern-star-2.svg'),
       url('/images/pattern-star-1.svg');
@@ -113,5 +114,12 @@
     background-size: 
       21px 21px,
       39px 39px;
+  }
+
+  main.new-record {
+    background-image: url('/images/pattern-confetti.svg');
+    background-size: 800px 235px;
+    background-position: bottom;
+    background-repeat: no-repeat;
   }
 </style>

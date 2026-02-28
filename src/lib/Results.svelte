@@ -12,17 +12,18 @@
     selectedTimeLimit,
     bestWPM,
     totalErrors,
+    isNewPersonalBest,
   } from "./store";
 
   let incorrectCharacters = 0;
   let isNewBaseline = false;
-  let isNewPersonalBest = false;
 
   $: incorrectCharacters = $totalCharacters - $correctCharacters;
 
   function restartTest() {
     $showResults = false;
     $isTestRunning = false;
+    $isNewPersonalBest = false;
     $userInput = "";
     $timeLeft = $selectedTimeLimit;
     $wpm = 0;
@@ -59,7 +60,7 @@
       try {
         const savedBest = JSON.parse(savedBestJSON);
         if ($wpm > savedBest.wpm) {
-          isNewPersonalBest = true;
+          $isNewPersonalBest = true;
           localStorage.setItem("personal-best", JSON.stringify(currentResult));
           $bestWPM = $wpm;
         }
@@ -76,7 +77,7 @@
 
 <div class="results-container">
   <div class="test-completed-icon">
-    {#if isNewPersonalBest}
+    {#if $isNewPersonalBest}
       <img class="new-pb-icon" src="/images/icon-new-pb.svg" alt="fireworks" />
     {:else}
       <img src="/images/icon-completed.svg" alt="check" />
@@ -86,7 +87,7 @@
   <h2>
     {#if isNewBaseline}
       Baseline Established!
-    {:else if isNewPersonalBest}
+    {:else if $isNewPersonalBest}
       High Score Smashed!
     {:else}
       Test Complete!
@@ -95,7 +96,7 @@
   <p class="completed-msg">
     {#if isNewBaseline}
       You've set the bar. Now the real challenge begins--time to beat it.
-    {:else if isNewPersonalBest}
+    {:else if $isNewPersonalBest}
       You're getting faster. That was incredible typing.
     {:else}
       Solid run. Keep pushing to beat your high score.
@@ -129,7 +130,7 @@
   </div>
 
   <button class="restart-btn" on:click={restartTest}>
-    {#if isNewBaseline || isNewPersonalBest}
+    {#if isNewBaseline || $isNewPersonalBest}
       Beat This Score
     {:else}
       Go Again
@@ -151,6 +152,7 @@
 <style lang="scss">
   .results-container {
     max-width: 600px;
+    margin-inline: auto;
     border-radius: 12px;
     text-align: center;
     color: $neutral-0;
@@ -262,7 +264,7 @@
   }
 
   .restart-btn {
-    margin-top: 1.5rem;
+    margin-top: 2rem;
     background-color: $neutral-0;
     color: $neutral-900;
     border: none;
