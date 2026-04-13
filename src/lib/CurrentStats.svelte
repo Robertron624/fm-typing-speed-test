@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { wpm, accuracy, timeLeft, testDifficulty, testMode } from './store';
+    import { wpm, accuracy, timeLeft, testDifficulty, testMode, isTestRunning } from './store';
     import type { TestDifficulty, TestMode } from '../types';
     import { clickOutside } from './actions';
 
@@ -27,11 +27,15 @@
         </div>
         <div class="stat">
             <p class="label">Accuracy:</p>
-            <p class="value">{$accuracy}%</p>
+            <p class="value" class:imperfect={$isTestRunning && $accuracy < 100}>{$accuracy}%</p>
         </div>
         <div class="stat">
             <p class="label">{$testMode === 'passage' ? 'Time Elapsed:' : 'Time Left:'}</p>
-            <p class="value">{formatTime($timeLeft)}</p>
+            <p
+                class="value"
+                class:time-warning={$isTestRunning && $testMode === 'timed' && $timeLeft < 60 && $timeLeft > 10}
+                class:time-critical={$isTestRunning && $testMode === 'timed' && $timeLeft <= 10}
+            >{formatTime($timeLeft)}</p>
         </div>
     </div>
     <div class="options">
@@ -88,7 +92,7 @@
                     Mode:
                 </span>
                 <div class="buttons">
-                    <button class:active={$testMode === 'timed'} on:click={() => testMode.set('timed')}>Timed</button>
+                    <button class:active={$testMode === 'timed'} on:click={() => testMode.set('timed')}>Timed (60s)</button>
                     <button class:active={$testMode === 'passage'} on:click={() => testMode.set('passage')}>Passage</button>
                 </div>
             </div>
@@ -121,6 +125,16 @@
                 
                 @include desktop {
                     display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
+
+                    &:first-child {
+                        padding-right: 1rem;
+                    }
+
+                    &:last-child {
+                        padding-left: 1rem;
+                    }
                 }
 
                 &:nth-child(2) {
@@ -140,6 +154,18 @@
                     font-size: 1.5rem;
                     font-weight: 600;
                     color: $neutral-0;
+
+                    &.imperfect {
+                        color: $incorrect-text-color;
+                    }
+
+                    &.time-warning {
+                        color: $yellow-400;
+                    }
+
+                    &.time-critical {
+                        color: $incorrect-text-color;
+                    }
                 }
             }
         }

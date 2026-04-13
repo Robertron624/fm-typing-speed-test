@@ -38,6 +38,7 @@
       if (difficultyTexts && difficultyTexts.length > 0) {
         // Pick random text
         const randomIndex = Math.floor(Math.random() * difficultyTexts.length);
+        const lastItemIndex = difficultyTexts.length - 1;
         $testText = difficultyTexts[randomIndex].text;
       }
 
@@ -93,13 +94,17 @@
   {/if}
 </main>
 
-<style>
+<style lang="scss">
   main {
     text-align: center;
     padding: 0 1em 6em 1em;
     width: 100%;
     margin-top: 2rem;
     flex: 1;
+
+    @include desktop {
+      margin-top: 3rem;
+    }
   }
   main.success {
     background-image: 

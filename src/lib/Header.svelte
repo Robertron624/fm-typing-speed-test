@@ -1,6 +1,5 @@
 <script lang="ts">
   import { bestWPM } from './store';
-  console.log("Header loaded");
 </script>
 
 <header>
