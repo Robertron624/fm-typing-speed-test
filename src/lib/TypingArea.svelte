@@ -1,185 +1,262 @@
 <script lang="ts">
-  import { testText, isTestRunning, userInput, timeLeft, wpm, accuracy, correctCharacters, totalCharacters, showResults, selectedTimeLimit, totalErrors, testMode } from './store';
-  
-  let inputElement: HTMLTextAreaElement;
+  import {
+    testText,
+    isTestRunning,
+    userInput,
+    timeLeft,
+    wpm,
+    accuracy,
+    correctCharacters,
+    totalCharacters,
+    showResults,
+    selectedTimeLimit,
+    totalErrors,
+    testMode,
+  } from "./store";
 
+  let inputElement: HTMLTextAreaElement;
 
   // Track errors
   let previousInputLength = 0;
-  
+
   $: {
-      if (!$isTestRunning && $userInput.length === 0) {
-          previousInputLength = 0;
+    if (!$isTestRunning && $userInput.length === 0) {
+      previousInputLength = 0;
+    }
+
+    // If input grew
+    if ($isTestRunning && $userInput.length > previousInputLength) {
+      const newCharIndex = $userInput.length - 1;
+      const char = $userInput[newCharIndex];
+      const targetChar = $testText[newCharIndex];
+
+      if (char !== targetChar) {
+        totalErrors.update((n) => n + 1);
       }
-      
-      // If input grew
-      if ($isTestRunning && $userInput.length > previousInputLength) {
-          const newCharIndex = $userInput.length - 1;
-          const char = $userInput[newCharIndex];
-          const targetChar = $testText[newCharIndex];
-          
-          if (char !== targetChar) {
-              totalErrors.update(n => n + 1);
-          }
-      }
-      previousInputLength = $userInput.length;
+    }
+    previousInputLength = $userInput.length;
   }
 
   function startTest() {
     if (!$isTestRunning) {
-        $isTestRunning = true;
+      $isTestRunning = true;
     }
     inputElement.focus();
   }
 
   function handleWindowKeydown(event: KeyboardEvent) {
     if ($isTestRunning) return;
-    
+
     // Ignore if user is interacting with UI controls
-    if (event.target instanceof HTMLElement && 
-       (event.target.tagName === 'BUTTON' || event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT')) {
-        return;
+    if (
+      event.target instanceof HTMLElement &&
+      (event.target.tagName === "BUTTON" ||
+        event.target.tagName === "INPUT" ||
+        event.target.tagName === "SELECT")
+    ) {
+      return;
     }
 
     // Ignore commands
     if (event.ctrlKey || event.metaKey || event.altKey) return;
-    
+
     // Only accept printable characters (length 1) to start the test
     // This avoids starting on Tab, Escape, Shift etc.
     if (event.key.length === 1) {
-        startTest();
+      startTest();
     }
+  }
+
+  function restartTest() {
+    $isTestRunning = false;
+    $userInput = "";
+    $timeLeft = $testMode === "timed" ? $selectedTimeLimit : 0;
+    $wpm = 0;
+    $accuracy = 100;
+    $correctCharacters = 0;
+    $totalCharacters = 0;
+    $totalErrors = 0;
   }
 
   function getCharClass(char: string, index: number, input: string) {
     if (index >= input.length) {
-        return '';
+      return "";
     }
-    return char === input[index] ? 'correct' : 'incorrect';
+    return char === input[index] ? "correct" : "incorrect";
   }
 
   // Check for test completion
   $: if ($isTestRunning && $userInput.length >= $testText.length) {
-      const rawElapsed = $testMode === 'passage' ? $timeLeft : ($selectedTimeLimit - $timeLeft);
-      // ensure at least 1s to avoid Infinity
-      const elapsed = Math.max(1, rawElapsed);
-      
-      let correct = 0;
-      const input = $userInput;
-      const text = $testText;
+    const rawElapsed =
+      $testMode === "passage" ? $timeLeft : $selectedTimeLimit - $timeLeft;
+    // ensure at least 1s to avoid Infinity
+    const elapsed = Math.max(1, rawElapsed);
 
-      for (let i = 0; i < input.length; i++) {
-          if (input[i] === text[i]) {
-              correct++;
-          }
+    let correct = 0;
+    const input = $userInput;
+    const text = $testText;
+
+    for (let i = 0; i < input.length; i++) {
+      if (input[i] === text[i]) {
+        correct++;
       }
-      
-      correctCharacters.set(correct);
-      totalCharacters.set(input.length);
-      
-      const netWpm = Math.round((correct / 5) / (elapsed / 60));
-      wpm.set(Math.max(0, netWpm));
-      
-      const acc = (correct + $totalErrors) > 0 ? Math.round((correct / (correct + $totalErrors)) * 100) : 100;
-      accuracy.set(acc);
+    }
 
-      isTestRunning.set(false);
-      showResults.set(true);
+    correctCharacters.set(correct);
+    totalCharacters.set(input.length);
+
+    const netWpm = Math.round(correct / 5 / (elapsed / 60));
+    wpm.set(Math.max(0, netWpm));
+
+    const acc =
+      correct + $totalErrors > 0
+        ? Math.round((correct / (correct + $totalErrors)) * 100)
+        : 0;
+    accuracy.set(acc);
+
+    isTestRunning.set(false);
+    showResults.set(true);
   }
 
   // Timer logic - with stats update
   let interval: ReturnType<typeof setInterval>;
-  
-  $: if ($isTestRunning && ($timeLeft > 0 || $testMode === 'passage')) {
-      if (!interval) {
-          interval = setInterval(() => {
-              timeLeft.update(n => {
-                  let now: number;
-                  let elapsed: number;
 
-                  if ($testMode === 'passage') {
-                      now = n + 1;
-                      elapsed = now;
-                  } else {
-                      now = n - 1;
-                      elapsed = $selectedTimeLimit - now;
-                  }
-                  
-                  // Stats calculation
-                  let correct = 0;
-                  // We access user input and text from store subscriptions
-                  const input = $userInput;
-                  const text = $testText;
+  $: if ($isTestRunning && ($timeLeft > 0 || $testMode === "passage")) {
+    if (!interval) {
+      interval = setInterval(() => {
+        timeLeft.update((n) => {
+          let now: number;
+          let elapsed: number;
 
-                  for (let i = 0; i < input.length; i++) {
-                      if (input[i] === text[i]) {
-                          correct++;
-                      }
-                  }
-                  
-                  correctCharacters.set(correct);
-                  totalCharacters.set(input.length);
-                  
-                  if (elapsed > 0) {
-                      const netWpm = Math.round((correct / 5) / (elapsed / 60));
-                      wpm.set(Math.max(0, netWpm));
-                      
-                      const acc = (correct + $totalErrors) > 0 ? Math.round((correct / (correct + $totalErrors)) * 100) : 100;
-                      accuracy.set(acc);
-                  }
+          if ($testMode === "passage") {
+            now = n + 1;
+            elapsed = now;
+          } else {
+            now = n - 1;
+            elapsed = $selectedTimeLimit - now;
+          }
 
-                  if ($testMode === 'timed' && now <= 0) {
-                      clearInterval(interval);
-                      isTestRunning.set(false);
-                      showResults.set(true);
-                      return 0;
-                  }
-                  return now;
-              });
-          }, 1000);
-      }
+          // Stats calculation
+          let correct = 0;
+          // We access user input and text from store subscriptions
+          const input = $userInput;
+          const text = $testText;
+
+          for (let i = 0; i < input.length; i++) {
+            if (input[i] === text[i]) {
+              correct++;
+            }
+          }
+
+          correctCharacters.set(correct);
+          totalCharacters.set(input.length);
+
+          if (elapsed > 0) {
+            const netWpm = Math.round(correct / 5 / (elapsed / 60));
+            wpm.set(Math.max(0, netWpm));
+
+            const acc =
+              correct + $totalErrors > 0
+                ? Math.round((correct / (correct + $totalErrors)) * 100)
+                : 0;
+            accuracy.set(acc);
+          }
+
+          if ($testMode === "timed" && now <= 0) {
+            clearInterval(interval);
+            isTestRunning.set(false);
+            showResults.set(true);
+            return 0;
+          }
+          return now;
+        });
+      }, 1000);
+    }
   } else if (!$isTestRunning && interval) {
-      clearInterval(interval);
-      // @ts-ignore
-      interval = null;
+    clearInterval(interval);
+    // @ts-ignore
+    interval = null;
   }
-
 </script>
 
 <svelte:window on:keydown={handleWindowKeydown} />
 
 <div class="typing-container">
   {#if !$isTestRunning}
-    <div class="overlay" on:click={startTest} on:keydown={() => {}} role="button" tabindex="0">
-        <button class="start-btn" on:click|stopPropagation={startTest}>Start Typing Test</button>
-        <p class="instruction">Or click the text and start typing</p>
+    <div
+      class="overlay"
+      on:click={startTest}
+      on:keydown={() => {}}
+      role="button"
+      tabindex="0"
+    >
+      <button class="start-btn" on:click|stopPropagation={startTest}
+        >Start Typing Test</button
+      >
+      <p class="instruction">Or click the text and start typing</p>
     </div>
   {/if}
 
-  <div class="text-display" class:blurred={!$isTestRunning} on:click={startTest} on:keydown={() => {}} role="button" tabindex="0">
-    {#each $testText.split('') as char, i}
+  <div
+    class="text-display"
+    class:blurred={!$isTestRunning}
+    on:click={startTest}
+    on:keydown={() => {}}
+    role="button"
+    tabindex="0"
+  >
+    {#each $testText.split("") as char, i}
       <span class={getCharClass(char, i, $userInput)}>{char}</span>
     {/each}
   </div>
 
+  <div class="text-area-container">
+    <textarea
+      bind:this={inputElement}
+      bind:value={$userInput}
+      class="sr-only"
+      aria-hidden="true"
+      autocomplete="off"
+      id="hidden-input"
+    ></textarea>
+    <!-- Button to restart the test once it has started -->
+
+    {#if $isTestRunning}
+      <button class="restart-btn" on:click={restartTest}>
+        <span> Restart Test </span>
+        <img src="/images/icon-restart.svg" alt="Restart Icon" />
+      </button>
+    {/if}
+  </div>
   <!-- Hidden textarea to capture input -->
-  <textarea 
-    bind:this={inputElement} 
-    bind:value={$userInput}
-    class="sr-only"
-    aria-hidden="true"
-    autocomplete="off"
-    id="hidden-input"
-  ></textarea>
 </div>
 
 <style lang="scss">
-
   .typing-container {
     position: relative;
     max-width: 900px;
     margin: 0 auto;
-    font-family: 'Sora', sans-serif;
+    font-family: "Sora", sans-serif;
+    margin-top: 2rem;
+    display: grid;
+    gap: 1rem;
+
+    .text-area-container {
+      position: relative;
+      .restart-btn {
+        color: $neutral-0;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        background-color: $neutral-800;
+        margin-inline: auto;
+        width: 181px;
+        height: 56px;
+        justify-content: center;
+        border-radius: 12px;
+        font-weight: 600;
+      }
+    }
   }
 
   .overlay {
@@ -208,23 +285,22 @@
     white-space: pre-wrap;
     user-select: none;
     text-align: start;
-    margin-top: 2rem;
-    
+
     &.blurred {
       filter: blur(6px);
       opacity: 0.5;
     }
 
     span {
-        &.correct {
-            color: $correct-text-color;
-        }
-        
-        &.incorrect {
-            color: $incorrect-text-color;
-            text-decoration: underline;
-            text-decoration-color: $incorrect-text-color;
-        }
+      &.correct {
+        color: $correct-text-color;
+      }
+
+      &.incorrect {
+        color: $incorrect-text-color;
+        text-decoration: underline;
+        text-decoration-color: $incorrect-text-color;
+      }
     }
   }
 
