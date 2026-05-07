@@ -234,8 +234,6 @@
 <style lang="scss">
   .typing-container {
     position: relative;
-    max-width: 900px;
-    margin: 0 auto;
     font-family: "Sora", sans-serif;
     margin-top: 2rem;
     display: grid;
@@ -307,7 +305,6 @@
   .start-btn {
     background-color: $blue-600;
     color: $neutral-0;
-    border: none;
     padding: 0.75rem 2rem;
     font-size: 1rem;
     font-weight: bold;
@@ -319,6 +316,11 @@
     &:hover {
       transform: scale(1.05);
       background-color: $blue-400;
+    }
+
+    &:focus-visible {
+      outline: 2px solid $blue-400;
+      outline-offset: 2px;
     }
   }
 

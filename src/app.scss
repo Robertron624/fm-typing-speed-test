@@ -140,4 +140,6 @@ textarea:-moz-placeholder {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  max-width: 1200px;
+  margin-inline: auto;
 }
